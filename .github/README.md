@@ -4,19 +4,12 @@ This directory contains GitHub Actions workflows for the FOGO Faucet Bot.
 
 ## Workflows
 
-### 1. CI/CD Pipeline (`ci.yml`)
-Comprehensive CI/CD pipeline that includes:
-- **Testing**: Multi-node version testing (18.x, 20.x)
-- **Building**: Docker image building and testing
-- **Deployment**: Staging and production deployments
-- **Environment**: Full environment variable support
-
-### 2. Test and Validate (`test.yml`)
-Lightweight validation workflow that includes:
-- **Environment Validation**: Checks all required environment variables
-- **Local Testing**: Runs the local test script
-- **Channel Setup**: Tests channel access and permissions
-- **Configuration Validation**: Verifies all required files exist
+### Continuous Deployment (`cd.yml`)
+Simple deployment workflow that includes:
+- **Testing**: Runs npm test with all environment variables
+- **Production Deployment**: Deploys when pushing to main branch
+- **Staging Deployment**: Deploys when pushing to test branch
+- **Environment**: Full environment variable support including TARGET_CHANNEL_ID
 
 ## Required GitHub Secrets
 

@@ -1,0 +1,57 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main, test ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        FOGO_RPC_URL: ${{ secrets.FOGO_RPC_URL }}
+        BOT_WALLET_PRIVATE_KEY: ${{ secrets.BOT_WALLET_PRIVATE_KEY }}
+        TARGET_CHANNEL_ID: ${{ secrets.TARGET_CHANNEL_ID }}
+        DATABASE_PATH: ./test_fogo_requests.db
+    
+    - name: Deploy to production
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "Deploying to production..."
+        # Add your deployment commands here
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        FOGO_RPC_URL: ${{ secrets.FOGO_RPC_URL }}
+        BOT_WALLET_PRIVATE_KEY: ${{ secrets.BOT_WALLET_PRIVATE_KEY }}
+        TARGET_CHANNEL_ID: ${{ secrets.TARGET_CHANNEL_ID }}
+        DATABASE_PATH: ./fogo_requests.db
+    
+    - name: Deploy to staging
+      if: github.ref == 'refs/heads/test'
+      run: |
+        echo "Deploying to staging..."
+        # Add your staging deployment commands here
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        FOGO_RPC_URL: ${{ secrets.FOGO_RPC_URL }}
+        BOT_WALLET_PRIVATE_KEY: ${{ secrets.BOT_WALLET_PRIVATE_KEY }}
+        TARGET_CHANNEL_ID: ${{ secrets.TARGET_CHANNEL_ID }}
+        DATABASE_PATH: ./fogo_requests.db 
