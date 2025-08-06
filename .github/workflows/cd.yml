@@ -64,7 +64,7 @@ jobs:
           ssh Server -C "
             docker load < /opt/$PROJECT_NAME/$BUILD_NAME/image.tar &&
             docker rm -f $PROJECT_NAME-$BUILD_NAME || true &&
-            docker run -d --name $PROJECT_NAME-$BUILD_NAME --env-file /opt/$PROJECT_NAME/$BUILD_NAME/.env -p $PORT:3000 $PROJECT_NAME:$BUILD_NAME || true &&
+            docker run -d --name $PROJECT_NAME-$BUILD_NAME --env-file /opt/$PROJECT_NAME/$BUILD_NAME/.env $PROJECT_NAME:$BUILD_NAME || true &&
             docker image prune -f || true &&
             rm /opt/$PROJECT_NAME/$BUILD_NAME/image.tar
           "
