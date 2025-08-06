@@ -1,0 +1,70 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [main]
+
+env:
+  SERVER_ADDRESS: p.pyron.fi
+  PROJECT_NAME: pyron-faucet-bot
+  BUILD_NAME: latest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build, Upload, and Deploy Docker Image
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add auth to .npmrc
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+
+      - name: Create ENV file
+        run: |
+          echo "
+            NODE_ENV=production
+            DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
+            GUILD_ID=your_guild_id_here
+            ROLE_NAME=test
+            FOGO_RPC_URL=https://testnet.fogo.io
+            FOGO_TOKEN_MINT=So11111111111111111111111111111111111111112
+            BOT_WALLET_PRIVATE_KEY=${{ secrets.BOT_WALLET_PRIVATE_KEY }}
+            DATABASE_PATH=./fogo_requests.db
+          " > .env
+          chmod 644 .env
+
+      - name: Build Docker Image
+        run: docker build -t $PROJECT_NAME:$BUILD_NAME .
+
+      - name: Save Docker Image as tarball
+        run: docker save $PROJECT_NAME:$BUILD_NAME -o image.tar
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          (umask 066; echo "${{ secrets.DEPLOYER_PRIVATE_KEY }}" > ~/.ssh/id_ed25519)
+          echo "
+            Host Server
+              HostName $SERVER_ADDRESS
+              User deployer
+              StrictHostKeyChecking no
+          " > ~/.ssh/config
+
+      - name: Create remote directory if it does not exist
+        run: ssh Server "mkdir -p /opt/$PROJECT_NAME/$BUILD_NAME"
+
+      - name: Upload Docker Image tarball and ENV file to Server
+        run: |
+          scp image.tar Server:/opt/$PROJECT_NAME/$BUILD_NAME/image.tar
+          scp .env Server:/opt/$PROJECT_NAME/$BUILD_NAME/.env
+
+      - name: Load and Run Docker Image on Server
+        run: |
+          ssh Server -C "
+            docker load < /opt/$PROJECT_NAME/$BUILD_NAME/image.tar &&
+            docker rm -f $PROJECT_NAME-$BUILD_NAME || true &&
+            docker run -d --name $PROJECT_NAME-$BUILD_NAME --env-file /opt/$PROJECT_NAME/$BUILD_NAME/.env -p $PORT:3000 $PROJECT_NAME:$BUILD_NAME || true &&
+            docker image prune -f || true &&
+            rm /opt/$PROJECT_NAME/$BUILD_NAME/image.tar
+          "
