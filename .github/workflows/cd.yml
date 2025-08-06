@@ -27,6 +27,7 @@ jobs:
             DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
             GUILD_ID=your_guild_id_here
             ROLE_NAME=test
+            TARGET_CHANNEL_ID=${{ secrets.TARGET_CHANNEL_ID }}
             FOGO_RPC_URL=https://testnet.fogo.io
             FOGO_TOKEN_MINT=So11111111111111111111111111111111111111112
             BOT_WALLET_PRIVATE_KEY=${{ secrets.BOT_WALLET_PRIVATE_KEY }}
