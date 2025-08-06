@@ -1,0 +1,32 @@
+{
+  "name": "pyron-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test-csv.js",
+    "test-csv": "node test-csv.js",
+    "dev": "nodemon index.js",
+    "fogo": "node fogo-bot.js",
+    "fogo-dev": "nodemon fogo-bot.js",
+    "test-fogo": "node test-fogo-bot.js",
+    "wallet": "node wallet-utils.js",
+    "post-faucet": "node post-faucet.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.87.6",
+    "bs58": "^5.0.0",
+    "csv-parser": "^3.2.0",
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
