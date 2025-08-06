@@ -37,6 +37,7 @@ FOGO_RPC_URL=https://testnet.fogo.io
 FOGO_TOKEN_MINT=So11111111111111111111111111111111111111112
 BOT_WALLET_PRIVATE_KEY=your_bot_wallet_private_key
 DATABASE_PATH=./data/fogo_requests.db
+TARGET_CHANNEL_ID=1402734319755202640
 ```
 
 ### Local Development
@@ -54,6 +55,33 @@ npm run test-fogo
 # Development with hot reload
 npm run fogo-dev
 ```
+
+### Channel Configuration
+
+The faucet bot is configured to work in a specific channel. By default, it targets channel ID `1402734319755202640`.
+
+#### Setting Up a New Channel
+
+1. **Update Environment Variable**: Set `TARGET_CHANNEL_ID` in your `.env` file:
+   ```env
+   TARGET_CHANNEL_ID=your_channel_id_here
+   ```
+
+2. **Verify Channel Access**: Run the setup script to verify the bot can access the channel:
+   ```bash
+   node setup-faucet-channel.js
+   ```
+
+3. **Bot Permissions**: Ensure the bot has the following permissions in the target channel:
+   - Send Messages
+   - Use External Emojis
+   - Read Message History
+
+#### Channel-Specific Features
+
+- **Targeted Interactions**: The bot only responds to interactions in the configured channel
+- **Auto Message Creation**: A faucet message is automatically created when the bot starts
+- **Isolated Functionality**: Token requests are only processed from the target channel
 
 ### Docker Deployment
 
