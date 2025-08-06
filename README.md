@@ -1,11 +1,12 @@
 # FOGO Token Discord Bot
 
-A Discord bot for distributing FOGO(Native) tokens on the Fogo network. Users can request 0.1 FOGO tokens once every 24 hours through an interactive button interface.
+A Discord bot for distributing FOGO(Native) tokens on the Fogo network. Users can request 0.1 FOGO tokens once every 24 hours through an interactive button interface. **Team members with the "Pyron Team" role can bypass the 24-hour cooldown limit.**
 
 ## Features
 
 - 🎯 **Token Distribution**: Send 0.1 FOGO(Native) tokens to eligible wallets
 - ⏰ **24-Hour Cooldown**: Prevent spam requests with automatic cooldown tracking
+- 🛡️ **Team Role Bypass**: Pyron Team members can request tokens without cooldown
 - 💰 **Balance Checking**: Verify wallet balance before sending tokens
 - 🗄️ **SQLite Database**: Persistent storage for user requests and timestamps
 - 🔒 **Input Validation**: Secure wallet address validation
@@ -121,11 +122,19 @@ npm run docker:start
 - **Wallet Input**: Users enter their Solana wallet address in the modal
 - **Automatic Validation**: Bot validates wallet format and checks balance
 - **Token Distribution**: Sends 0.1 FOGO(Native) tokens if eligible
+- **Team Role Support**: Users with "Pyron Team" role bypass cooldown limits
 
 ### Test Bot
 - **Simulated Transfers**: No real tokens are sent
 - **Same Interface**: Identical user experience for testing
 - **Separate Database**: Uses `test_fogo_requests.db`
+- **Team Role Support**: Same team role functionality as main bot
+
+### Team Role Functionality
+- **Role Name**: "Pyron Team" (case-insensitive)
+- **Bypass Cooldown**: Team members can request tokens without 24-hour wait
+- **No Database Tracking**: Team requests don't affect cooldown tracking
+- **Special Messages**: Team requests show "🛡️ Team Member Request" in success messages
 
 ## Deployment Options
 
@@ -246,8 +255,9 @@ pm2 logs fogo-bot
 - **Non-root User**: Docker containers run as non-root user
 - **Environment Variables**: Sensitive data stored in environment variables
 - **Input Validation**: Wallet addresses are validated before processing
-- **Rate Limiting**: 24-hour cooldown prevents abuse
+- **Rate Limiting**: 24-hour cooldown prevents abuse (bypassed for team members)
 - **Balance Checking**: Prevents sending tokens to wallets with sufficient balance
+- **Role-Based Access**: Team members have special privileges
 
 ## Troubleshooting
 
@@ -272,6 +282,11 @@ pm2 logs fogo-bot
    - Ensure `data/` directory exists and is writable
    - Check SQLite file permissions
    - Verify database path in environment variables
+
+5. **Team Role Not Working**
+   - Verify the role is named exactly "Pyron Team" (case-insensitive)
+   - Check bot has permission to read member roles
+   - Ensure the user has the role assigned
 
 ### Getting Help
 
@@ -299,3 +314,8 @@ For issues and questions:
 - Review the logs for error messages
 - Ensure all environment variables are set correctly
 - Verify Discord bot permissions and invite link
+
+---
+
+**Repository**: [https://github.com/pyron-finance/discord-faucet-bot](https://github.com/pyron-finance/discord-faucet-bot)
+**Organization**: Pyron Finance
