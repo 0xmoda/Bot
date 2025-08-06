@@ -1,0 +1,88 @@
+name: Test and Validate
+
+on:
+  push:
+    branches: [ main, test, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Validate environment configuration
+      run: |
+        echo "Validating environment configuration..."
+        node -e "
+          require('dotenv').config();
+          const required = ['DISCORD_TOKEN', 'FOGO_RPC_URL', 'BOT_WALLET_PRIVATE_KEY', 'TARGET_CHANNEL_ID'];
+          const missing = required.filter(key => !process.env[key]);
+          if (missing.length > 0) {
+            console.error('Missing environment variables:', missing);
+            process.exit(1);
+          }
+          console.log('✅ All required environment variables are configured');
+        "
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        FOGO_RPC_URL: ${{ secrets.FOGO_RPC_URL }}
+        BOT_WALLET_PRIVATE_KEY: ${{ secrets.BOT_WALLET_PRIVATE_KEY }}
+        TARGET_CHANNEL_ID: ${{ secrets.TARGET_CHANNEL_ID }}
+    
+    - name: Run local test script
+      run: node test-local.js
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        FOGO_RPC_URL: ${{ secrets.FOGO_RPC_URL }}
+        BOT_WALLET_PRIVATE_KEY: ${{ secrets.BOT_WALLET_PRIVATE_KEY }}
+        TARGET_CHANNEL_ID: ${{ secrets.TARGET_CHANNEL_ID }}
+        DATABASE_PATH: ./test_fogo_requests.db
+    
+    - name: Test channel setup
+      run: node setup-faucet-channel.js
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        FOGO_RPC_URL: ${{ secrets.FOGO_RPC_URL }}
+        BOT_WALLET_PRIVATE_KEY: ${{ secrets.BOT_WALLET_PRIVATE_KEY }}
+        TARGET_CHANNEL_ID: ${{ secrets.TARGET_CHANNEL_ID }}
+    
+    - name: Validate bot configuration
+      run: |
+        echo "Validating bot configuration..."
+        node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Check if fogo-bot.js exists and is valid
+          if (!fs.existsSync('fogo-bot.js')) {
+            console.error('❌ fogo-bot.js not found');
+            process.exit(1);
+          }
+          
+          // Check if setup-faucet-channel.js exists
+          if (!fs.existsSync('setup-faucet-channel.js')) {
+            console.error('❌ setup-faucet-channel.js not found');
+            process.exit(1);
+          }
+          
+          // Check if test-local.js exists
+          if (!fs.existsSync('test-local.js')) {
+            console.error('❌ test-local.js not found');
+            process.exit(1);
+          }
+          
+          console.log('✅ All required files exist');
+        " 
