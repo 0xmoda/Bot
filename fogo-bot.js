@@ -103,12 +103,19 @@ class FogoBot {
                 return;
             }
 
-            // Check cooldown
-            const cooldownCheck = await this.checkCooldown(userId);
-            if (!cooldownCheck.canRequest) {
-                await this.sendErrorEmbed(interaction, '⏰ Cooldown Active', 
-                    `You can request tokens again in ${cooldownCheck.remainingTime} hours.`);
-                return;
+            // Check if user has Pyron Team role (bypasses cooldown)
+            const hasTeamRole = await this.hasPyronTeamRole(interaction.member);
+            
+            // Check cooldown (skip for team members)
+            if (!hasTeamRole) {
+                const cooldownCheck = await this.checkCooldown(userId);
+                if (!cooldownCheck.canRequest) {
+                    await this.sendErrorEmbed(interaction, '⏰ Cooldown Active', 
+                        `You can request tokens again in ${cooldownCheck.remainingTime} hours.`);
+                    return;
+                }
+            } else {
+                console.log(`🛡️ Team member ${interaction.user.tag} bypassing cooldown`);
             }
 
             // Check wallet balance
@@ -122,11 +129,14 @@ class FogoBot {
             // Send tokens
             const transferResult = await this.sendTokens(walletAddress);
             if (transferResult.success) {
-                // Update database
-                await this.updateUserRequest(userId, walletAddress);
+                // Update database (skip for team members to avoid cooldown tracking)
+                if (!hasTeamRole) {
+                    await this.updateUserRequest(userId, walletAddress);
+                }
                 
+                const teamMessage = hasTeamRole ? '\n🛡️ **Team Member Request**' : '';
                 await this.sendSuccessEmbed(interaction, '🎉 Tokens Sent Successfully!', 
-                    `0.1 FOGO(Native) token has been sent to \`${walletAddress}\`\nTransaction: \`${transferResult.signature}\``);
+                    `0.1 FOGO(Native) token has been sent to \`${walletAddress}\`\nTransaction: \`${transferResult.signature}\`${teamMessage}`);
             } else {
                 await this.sendErrorEmbed(interaction, '❌ Transfer Failed', 
                     `Failed to send tokens: ${transferResult.error}`);
@@ -285,6 +295,22 @@ class FogoBot {
         const row = new ActionRowBuilder().addComponents(button);
 
         return { embeds: [embed], components: [row] };
+    }
+
+    async hasPyronTeamRole(member) {
+        try {
+            if (!member) return false;
+            
+            // Check for "Pyron Team" role (case-insensitive)
+            const teamRole = member.roles.cache.find(role => 
+                role.name.toLowerCase() === 'pyron team'
+            );
+            
+            return !!teamRole;
+        } catch (error) {
+            console.error('Error checking team role:', error);
+            return false;
+        }
     }
 
     start() {

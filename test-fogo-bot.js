@@ -103,12 +103,19 @@ class TestFogoBot {
                 return;
             }
 
-            // Check cooldown
-            const cooldownCheck = await this.checkCooldown(userId);
-            if (!cooldownCheck.canRequest) {
-                await this.sendErrorEmbed(interaction, '⏰ Cooldown Active', 
-                    `You can request tokens again in ${cooldownCheck.remainingTime} hours.`);
-                return;
+            // Check if user has Pyron Team role (bypasses cooldown)
+            const hasTeamRole = await this.hasPyronTeamRole(interaction.member);
+            
+            // Check cooldown (skip for team members)
+            if (!hasTeamRole) {
+                const cooldownCheck = await this.checkCooldown(userId);
+                if (!cooldownCheck.canRequest) {
+                    await this.sendErrorEmbed(interaction, '⏰ Cooldown Active', 
+                        `You can request tokens again in ${cooldownCheck.remainingTime} hours.`);
+                    return;
+                }
+            } else {
+                console.log(`🛡️ Team member ${interaction.user.tag} bypassing cooldown (test)`);
             }
 
             // Check wallet balance
@@ -122,11 +129,14 @@ class TestFogoBot {
             // Simulate token transfer
             const transferResult = await this.simulateTokenTransfer(walletAddress);
             if (transferResult.success) {
-                // Update database
-                await this.updateUserRequest(userId, walletAddress);
+                // Update database (skip for team members to avoid cooldown tracking)
+                if (!hasTeamRole) {
+                    await this.updateUserRequest(userId, walletAddress);
+                }
                 
+                const teamMessage = hasTeamRole ? '\n🛡️ **Team Member Test Request**' : '';
                 await this.sendSuccessEmbed(interaction, '🎉 Test Transfer Successful!', 
-                    `0.1 FOGO(Native) token would be sent to \`${walletAddress}\`\nTest Transaction: \`${transferResult.signature}\`\n\n⚠️ This was a test - no actual tokens were transferred.`);
+                    `0.1 FOGO(Native) token would be sent to \`${walletAddress}\`\nTest Transaction: \`${transferResult.signature}\`\n\n⚠️ This was a test - no actual tokens were transferred.${teamMessage}`);
             } else {
                 await this.sendErrorEmbed(interaction, '❌ Test Transfer Failed', 
                     `Failed to simulate transfer: ${transferResult.error}`);
@@ -273,6 +283,22 @@ class TestFogoBot {
         const row = new ActionRowBuilder().addComponents(button);
 
         return { embeds: [embed], components: [row] };
+    }
+
+    async hasPyronTeamRole(member) {
+        try {
+            if (!member) return false;
+            
+            // Check for "Pyron Team" role (case-insensitive)
+            const teamRole = member.roles.cache.find(role => 
+                role.name.toLowerCase() === 'pyron team'
+            );
+            
+            return !!teamRole;
+        } catch (error) {
+            console.error('Error checking team role:', error);
+            return false;
+        }
     }
 
     start() {
