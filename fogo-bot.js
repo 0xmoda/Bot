@@ -26,6 +26,9 @@ class FogoBot {
         this.db = new sqlite3.Database(process.env.DATABASE_PATH || './fogo_requests.db');
         this.initDatabase();
         
+        // Channel configuration
+        this.targetChannelId = process.env.TARGET_CHANNEL_ID || '1402734319755202640';
+        
         this.setupEventHandlers();
     }
 
@@ -46,10 +49,19 @@ class FogoBot {
     setupEventHandlers() {
         this.client.once('ready', () => {
             console.log(`🤖 ${this.client.user.tag} is ready!`);
+            console.log(`🎯 Target channel ID: ${this.targetChannelId}`);
+            
+            // Create faucet message in target channel on startup
+            this.createFaucetMessageInTargetChannel();
         });
 
         this.client.on('interactionCreate', async (interaction) => {
             try {
+                // Only respond to interactions in the target channel
+                if (interaction.channelId !== this.targetChannelId) {
+                    return;
+                }
+                
                 // Handle button clicks
                 if (interaction.isButton()) {
                     if (interaction.customId === 'request_tokens') {
@@ -295,6 +307,23 @@ class FogoBot {
         const row = new ActionRowBuilder().addComponents(button);
 
         return { embeds: [embed], components: [row] };
+    }
+
+    // Method to create faucet message in the target channel
+    async createFaucetMessageInTargetChannel() {
+        try {
+            const channel = await this.client.channels.fetch(this.targetChannelId);
+            if (!channel) {
+                console.error(`❌ Channel ${this.targetChannelId} not found`);
+                return;
+            }
+
+            const message = await this.createFaucetMessage(channel);
+            await channel.send(message);
+            console.log(`✅ Faucet message created in channel ${channel.name}`);
+        } catch (error) {
+            console.error('❌ Error creating faucet message:', error.message);
+        }
     }
 
     async hasPyronTeamRole(member) {
