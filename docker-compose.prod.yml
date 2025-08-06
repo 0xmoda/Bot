@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  fogo-bot:
+    build: .
+    container_name: fogo-bot-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs:rw
+      - ./data:/app/data:rw
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Bot is healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  test-fogo-bot:
+    build: .
+    container_name: test-fogo-bot-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs:rw
+      - ./data:/app/data:rw
+    networks:
+      - bot-network
+    command: ["npm", "run", "test-fogo"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Test bot is healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  bot-logs:
+  bot-data: 

@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  fogo-bot-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: fogo-bot-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - .:/app
+      - /app/node_modules
+    networks:
+      - bot-network
+    ports:
+      - "9229:9229"  # Node.js debug port
+    command: ["npm", "run", "fogo-dev"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Dev bot is healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  test-fogo-bot-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: test-fogo-bot-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - .:/app
+      - /app/node_modules
+    networks:
+      - bot-network
+    ports:
+      - "9230:9229"  # Node.js debug port for test bot
+    command: ["npm", "run", "test-fogo"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Test dev bot is healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  bot-logs:
+  bot-data: 

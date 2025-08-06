@@ -1,6 +1,7 @@
 {
   "name": "pyron-bot",
   "version": "1.0.0",
+  "description": "FOGO Token Discord Bot with Docker support",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -11,22 +12,42 @@
     "fogo-dev": "nodemon fogo-bot.js",
     "test-fogo": "node test-fogo-bot.js",
     "wallet": "node wallet-utils.js",
-    "post-faucet": "node post-faucet.js"
+    "post-faucet": "node post-faucet.js",
+    "docker:build": "docker build -t fogo-bot .",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:start": "docker-compose up -d",
+    "docker:stop": "docker-compose down && docker-compose -f docker-compose.dev.yml down && docker-compose -f docker-compose.prod.yml down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:logs-dev": "docker-compose -f docker-compose.dev.yml logs -f",
+    "docker:logs-prod": "docker-compose -f docker-compose.prod.yml logs -f",
+    "docker:status": "docker-compose ps && docker-compose -f docker-compose.dev.yml ps && docker-compose -f docker-compose.prod.yml ps",
+    "docker:clean": "docker-compose down -v && docker-compose -f docker-compose.dev.yml down -v && docker-compose -f docker-compose.prod.yml down -v && docker system prune -f",
+    "docker:shell": "./docker-scripts.sh"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "discord",
+    "bot",
+    "fogo",
+    "token",
+    "faucet",
+    "solana",
+    "docker"
+  ],
+  "author": "0xmoda",
+  "license": "MIT",
   "dependencies": {
-    "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.87.6",
+    "@solana/spl-token": "^0.3.9",
+    "discord.js": "^14.14.1",
+    "sqlite3": "^5.1.6",
     "bs58": "^5.0.0",
-    "csv-parser": "^3.2.0",
-    "discord.js": "^14.21.0",
-    "dotenv": "^17.2.1",
-    "sqlite3": "^5.1.6"
+    "dotenv": "^17.2.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
